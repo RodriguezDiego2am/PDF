@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visor de Chats</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{
+  --bg:#efeae2; --panel:#ffffff; --panel-2:#f6f5f3; --line:#e2ddd5;
+  --text:#1f2328; --muted:#6b7280; --accent:#0f8a6c; --accent-soft:#d8f0e8;
+  --in:#ffffff; --out:#d9fdd3; --sys:#fff6d6; --mark:#ffd84d; --star:#e0a100;
+  --shadow:0 1px 1.5px rgba(0,0,0,.12);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b141a; --panel:#111b21; --panel-2:#1a252c; --line:#24323a;
+    --text:#e9edef; --muted:#8696a0; --accent:#25c08f; --accent-soft:#103a30;
+    --in:#202c33; --out:#005c4b; --sys:#2a2f1f; --mark:#b38b00; --star:#ffc93c;
+    --shadow:0 1px 1.5px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b141a; --panel:#111b21; --panel-2:#1a252c; --line:#24323a;
+  --text:#e9edef; --muted:#8696a0; --accent:#25c08f; --accent-soft:#103a30;
+  --in:#202c33; --out:#005c4b; --sys:#2a2f1f; --mark:#b38b00; --star:#ffc93c;
+  --shadow:0 1px 1.5px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+
+/* ---------- Pantalla de carga ---------- */
+#drop{min-height:100%;display:grid;place-items:center;padding:24px 16px}
+.drop-card{max-width:520px;width:100%;background:var(--panel);border:2px dashed var(--line);border-radius:18px;padding:36px 28px;text-align:center}
+.drop-card.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop-card h1{margin:0 0 8px;font-size:24px}
+.drop-card p{color:var(--muted);margin:6px 0}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:999px;padding:10px 20px;font-weight:600}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+.btn.small{padding:6px 12px;font-size:13px}
+.privacy{font-size:13px;margin-top:18px!important}
+#err{color:#d33;margin-top:12px}
+
+/* ---------- App ---------- */
+#app{display:grid;grid-template-columns:340px 1fr;height:100%}
+aside{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.side-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
+.side-head h2{font-size:16px;margin:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:none;border:0;padding:10px 4px;color:var(--muted);border-bottom:2px solid transparent;font-size:14px}
+.tabs button.on{color:var(--accent);border-color:var(--accent);font-weight:600}
+.pane{flex:1;overflow:auto;padding:14px 16px;min-height:0}
+.field{margin-bottom:14px}
+.field label.t{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:6px}
+.input{width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.row{display:flex;gap:8px;align-items:center}
+.chk{display:flex;align-items:center;gap:8px;padding:4px 0}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.res{padding:10px;border-radius:10px;cursor:pointer;border:1px solid transparent}
+.res:hover{background:var(--panel-2);border-color:var(--line)}
+.res .meta{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.res .snip{font-size:14px;margin-top:2px;word-break:break-word}
+.count{font-size:13px;color:var(--muted);margin:4px 0 10px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.stat{background:var(--panel-2);border-radius:12px;padding:10px}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:12px;color:var(--muted)}
+.bars{display:flex;align-items:flex-end;gap:2px;height:90px;margin:6px 0 2px}
+.bars div{flex:1;background:var(--accent);border-radius:3px 3px 0 0;min-height:1px;opacity:.85}
+.bars-x{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.hbar{margin:6px 0}
+.hbar .l{display:flex;justify-content:space-between;font-size:13px}
+.hbar .b{height:8px;border-radius:4px;background:var(--panel-2);overflow:hidden;margin-top:3px}
+.hbar .b i{display:block;height:100%}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:18px 0 6px}
+
+main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.top{background:var(--panel);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:center;gap:10px}
+.top .title{flex:1;min-width:0}
+.top .title b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .title span{font-size:13px;color:var(--muted)}
+.iconbtn{background:none;border:1px solid var(--line);border-radius:10px;padding:6px 10px}
+#menuBtn{display:none}
+#chat{flex:1;overflow:auto;padding:12px 6% 40px;min-height:0}
+.day{content-visibility:auto;contain-intrinsic-size:auto 600px}
+.day-sep{position:sticky;top:6px;z-index:2;text-align:center;margin:12px 0}
+.day-sep span{background:var(--panel);color:var(--muted);font-size:12.5px;padding:5px 12px;border-radius:8px;box-shadow:var(--shadow)}
+.msg{display:flex;margin:2px 0;position:relative}
+.msg.out{justify-content:flex-end}
+.bubble{max-width:min(75%,620px);background:var(--in);border-radius:10px;padding:6px 9px 4px;box-shadow:var(--shadow);position:relative;word-wrap:break-word;overflow-wrap:anywhere}
+.msg.out .bubble{background:var(--out)}
+.msg.first .bubble{margin-top:6px}
+.sender{font-size:13px;font-weight:600;margin-bottom:2px}
+.txt{white-space:pre-wrap}
+.txt a{color:var(--accent)}
+.foot{display:flex;justify-content:flex-end;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-top:2px}
+.star{background:none;border:0;padding:0 2px;color:var(--muted);opacity:0;font-size:14px;line-height:1}
+.msg:hover .star,.star.on{opacity:1}
+.star.on{color:var(--star)}
+.msg.starred .bubble{outline:2px solid var(--star);outline-offset:1px}
+.deleted .txt,.omit{font-style:italic;color:var(--muted)}
+.sys{text-align:center;margin:8px 0}
+.sys span{display:inline-block;background:var(--sys);color:var(--muted);font-size:12.5px;padding:5px 12px;border-radius:8px;max-width:85%}
+mark{background:var(--mark);color:inherit;border-radius:3px;padding:0 1px}
+.flash .bubble{animation:flash 1.6s ease}
+@keyframes flash{0%,40%{box-shadow:0 0 0 4px var(--accent)}100%{box-shadow:var(--shadow)}}
+.media img,.media video{max-width:100%;max-height:340px;border-radius:8px;display:block;margin:2px 0 4px}
+.media audio{width:260px;max-width:100%}
+.media a.file{display:inline-block;padding:8px 10px;background:var(--panel-2);border-radius:8px;margin:2px 0}
+.empty{color:var(--muted);font-size:14px;text-align:center;padding:20px 0}
+
+@media (max-width:820px){
+  #app{grid-template-columns:1fr}
+  aside{position:fixed;inset:0 auto 0 0;width:min(92vw,360px);z-index:10;transform:translateX(-100%);transition:transform .2s;box-shadow:0 0 30px rgba(0,0,0,.3)}
+  aside.open{transform:none}
+  #menuBtn{display:inline-block}
+  #chat{padding:10px 10px 40px}
+  .bubble{max-width:85%}
+  .star{opacity:.6}
+}
+</style>
+</head>
+<body>
+
+<!-- Pantalla inicial -->
+<section id="drop">
+  <div class="drop-card" id="dropCard">
+    <h1>Visor de chats de WhatsApp</h1>
+    <p>Arrastra aquí el archivo exportado (<b>.txt</b> o <b>.zip</b> con multimedia)</p>
+    <p style="margin:18px 0"><button class="btn" id="pickBtn">Elegir archivo</button></p>
+    <input type="file" id="file" accept=".txt,.zip" class="hidden">
+    <p class="privacy">🔒 Todo se procesa en tu navegador. El archivo no se sube a ningún servidor.</p>
+    <div id="err"></div>
+  </div>
+</section>
+
+<!-- Aplicación -->
+<div id="app" class="hidden">
+  <aside id="side">
+    <div class="side-head">
+      <h2 id="sideTitle">Chat</h2>
+      <button class="btn ghost small" id="closeBtn">Cerrar</button>
+    </div>
+    <div class="tabs">
+      <button data-tab="search" class="on">Buscar</button>
+      <button data-tab="filters">Filtros</button>
+      <button data-tab="stars">Marcados</button>
+      <button data-tab="stats">Estadísticas</button>
+    </div>
+
+    <div class="pane" data-pane="search">
+      <div class="field">
+        <input class="input" id="q" type="search" placeholder="Buscar palabras o frases…" autocomplete="off">
+      </div>
+      <div class="count" id="qCount"></div>
+      <div id="qRes"></div>
+    </div>
+
+    <div class="pane hidden" data-pane="filters">
+      <div class="field">
+        <label class="t">Yo soy (mis mensajes a la derecha)</label>
+        <select class="input" id="me"></select>
+      </div>
+      <div class="field">
+        <label class="t">Participantes visibles</label>
+        <div id="people"></div>
+      </div>
+      <div class="field">
+        <label class="t">Rango de fechas</label>
+        <div class="row">
+          <input class="input" type="date" id="from">
+          <input class="input" type="date" id="to">
+        </div>
+      </div>
+      <div class="field">
+        <label class="t">Ir a una fecha</label>
+        <div class="row">
+          <input class="input" type="date" id="jump">
+          <button class="btn small" id="jumpBtn">Ir</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="chk"><input type="checkbox" id="onlyStar"> Mostrar solo mensajes marcados</label>
+        <label class="chk"><input type="checkbox" id="hideSys" checked> Ocultar mensajes del sistema</label>
+      </div>
+      <button class="btn ghost small" id="resetBtn">Limpiar filtros</button>
+    </div>
+
+    <div class="pane hidden" data-pane="stars">
+      <p class="count">Pasa el cursor por un mensaje y pulsa ☆ para marcarlo. Las marcas se guardan en este navegador.</p>
+      <div class="row" style="margin-bottom:12px">
+        <button class="btn small" id="exportBtn">Exportar marcados (.txt)</button>
+      </div>
+      <div id="starList"></div>
+    </div>
+
+    <div class="pane hidden" data-pane="stats" id="stats"></div>
+  </aside>
+
+  <main>
+    <div class="top">
+      <button class="iconbtn" id="menuBtn" aria-label="Menú">☰</button>
+      <div class="title"><b id="chatName">Chat</b><span id="chatSub"></span></div>
+      <button class="iconbtn" id="themeBtn" aria-label="Cambiar tema">◐</button>
+    </div>
+    <div id="chat"></div>
+  </main>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+/* ================= Estado ================= */
+let msgs = [];            // {i, date:Date, sender, text, sys, kind, media}
+let people = [];
+let mediaMap = new Map(); // nombre de archivo -> blob URL
+let chatKey = '';
+let stars = new Set();
+let me = '';
+let elById = new Map();
+let highlighted = [];
+const colors = {};
+
+/* ================= Tema ================= */
+const root = document.documentElement;
+try { const t = localStorage.getItem('wv-theme'); if (t) root.dataset.theme = t; } catch {}
+$('#themeBtn').onclick = () => {
+  const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = dark ? 'light' : 'dark';
+  try { localStorage.setItem('wv-theme', root.dataset.theme); } catch {}
+};
+
+/* ================= Carga de archivos ================= */
+const card = $('#dropCard');
+$('#pickBtn').onclick = () => $('#file').click();
+$('#file').onchange = e => e.target.files[0] && load(e.target.files[0]);
+['dragenter','dragover'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); card.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); card.classList.remove('over'); }));
+document.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f && $('#app').classList.contains('hidden')) load(f); });
+
+async function load(file) {
+  $('#err').textContent = '';
+  try {
+    let text, name = file.name;
+    mediaMap.forEach(u => URL.revokeObjectURL(u)); mediaMap = new Map();
+    if (/\.zip$/i.test(file.name)) {
+      if (!window.JSZip) throw new Error('No se pudo cargar el lector de .zip. Descomprime y abre el .txt.');
+      const zip = await JSZip.loadAsync(file);
+      const entries = Object.values(zip.files).filter(f => !f.dir);
+      const txt = entries.find(f => /_chat\.txt$/i.test(f.name)) || entries.find(f => /\.txt$/i.test(f.name));
+      if (!txt) throw new Error('El .zip no contiene un archivo .txt de chat.');
+      text = await txt.async('string');
+      name = txt.name;
+      for (const f of entries) {
+        if (f === txt) continue;
+        const blob = await f.async('blob');
+        mediaMap.set(f.name.split('/').pop(), URL.createObjectURL(new Blob([blob], {type: mimeOf(f.name)})));
+      }
+    } else {
+      text = await file.text();
+    }
+    parse(text);
+    if (!msgs.length) throw new Error('No se reconocieron mensajes. ¿Es un chat exportado de WhatsApp?');
+    start(name);
+  } catch (err) {
+    $('#err').textContent = err.message || String(err);
+  }
+}
+
+function mimeOf(n) {
+  const e = n.split('.').pop().toLowerCase();
+  return ({jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',gif:'image/gif',webp:'image/webp',
+    mp4:'video/mp4',mov:'video/quicktime','3gp':'video/3gpp',opus:'audio/ogg',ogg:'audio/ogg',
+    mp3:'audio/mpeg',m4a:'audio/mp4',aac:'audio/aac',pdf:'application/pdf',vcf:'text/vcard'})[e] || 'application/octet-stream';
+}
+
+/* ================= Parser =================
+   Soporta Android:  31/10/2023, 14:05 - Nombre: texto
+                     10/31/23, 2:05 p. m. - Nombre: texto
+   y iOS:            [31/10/23, 14:05:33] Nombre: texto            */
+const RE = /^\[?(\d{1,4})[\/.\-](\d{1,2})[\/.\-](\d{1,4}),?\s+(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?\s*([ap]\.?\s?m\.?)?\]?\s*(?:[-–]\s)?\s*(.*)$/i;
+
+function parse(raw) {
+  const lines = raw.replace(/\r/g, '').replace(/[‎‏‪-‮﻿]/g, '').replace(/[  ]/g, ' ').split('\n');
+  const rows = [];
+  for (const line of lines) {
+    const m = line.match(RE);
+    if (m && /^\[?\d/.test(line)) rows.push({m, extra: []});
+    else if (rows.length) rows[rows.length - 1].extra.push(line);
+  }
+  // Detectar orden día/mes
+  let dayFirst = true, a12 = false, b12 = false, yearFirst = false;
+  for (const r of rows) {
+    const a = +r.m[1], b = +r.m[2];
+    if (r.m[1].length === 4) yearFirst = true;
+    if (a > 12) a12 = true;
+    if (b > 12) b12 = true;
+  }
+  if (b12 && !a12) dayFirst = false;
+
+  msgs = []; const seen = new Map();
+  rows.forEach(r => {
+    let [ , p1, p2, p3, hh, mm, ss, ampm, rest] = r.m;
+    let y, mo, d;
+    if (yearFirst) { y = +p1; mo = +p2; d = +p3; }
+    else { d = dayFirst ? +p1 : +p2; mo = dayFirst ? +p2 : +p1; y = +p3; }
+    if (y < 100) y += 2000;
+    let h = +hh;
+    if (ampm) { const pm = /p/i.test(ampm); if (pm && h < 12) h += 12; if (!pm && h === 12) h = 0; }
+    const date = new Date(y, mo - 1, d, h, +mm, +(ss || 0));
+    const full = [rest, ...r.extra].join('\n');
+    const idx = full.indexOf(': ');
+    const head = idx > -1 ? full.slice(0, idx) : '';
+    const looksName = idx > 0 && idx < 60 && !head.includes('\n');
+    const msg = {i: msgs.length, date, sender: '', text: full, sys: !looksName, kind: 'text', media: null};
+    if (looksName) {
+      msg.sender = head.trim();
+      msg.text = full.slice(idx + 2);
+      seen.set(msg.sender, (seen.get(msg.sender) || 0) + 1);
+      classify(msg);
+    }
+    msgs.push(msg);
+  });
+  people = [...seen.entries()].sort((a, b) => b[1] - a[1]).map(e => e[0]);
+}
+
+function classify(m) {
+  const t = m.text.trim();
+  let f;
+  if ((f = t.match(/^<(?:adjunto|attached|anexo|allegato|pièce jointe):\s*([^>]+)>/i))) { m.kind = 'media'; m.media = f[1].trim(); m.text = t.slice(f[0].length).trim(); }
+  else if ((f = t.match(/^(.+?\.\w{2,5})\s*\((?:archivo adjunto|file attached|arquivo anexado)\)/i))) { m.kind = 'media'; m.media = f[1].trim(); m.text = t.slice(f[0].length).trim(); }
+  else if (/^<?(multimedia omitido|media omitted|archivo omitido|arquivo de mídia oculto)>?$/i.test(t) || /^(imagen|image|video|vídeo|audio|sticker|gif|documento|document) omitid[oa]$/i.test(t) || /omitted$/i.test(t) && t.length < 30) { m.kind = 'omit'; }
+  else if (/^(se eliminó este mensaje|eliminaste este mensaje|this message was deleted|you deleted this message|mensaje eliminado)\.?$/i.test(t)) { m.kind = 'deleted'; }
+  m.edited = /<(se editó este mensaje|this message was edited|mensaje editado)\.?>\s*$/i.test(m.text);
+  if (m.edited) m.text = m.text.replace(/\s*<(se editó este mensaje|this message was edited|mensaje editado)\.?>\s*$/i, '');
+}
+
+/* ================= Inicio ================= */
+function start(fileName) {
+  const title = fileName.replace(/^.*\//, '').replace(/\.txt$/i, '').replace(/^(Chat de WhatsApp con|WhatsApp Chat with|Conversa do WhatsApp com)\s*/i, '').replace(/^_chat$/, '') || (people.slice(0, 2).join(' y ') || 'Chat');
+  $('#chatName').textContent = title;
+  $('#sideTitle').textContent = title;
+  document.title = title + ' · Visor de Chats';
+  const f = msgs[0].date, l = msgs[msgs.length - 1].date;
+  $('#chatSub').textContent = `${people.length} participantes · ${msgs.length.toLocaleString('es')} mensajes · ${fmtD(f)} – ${fmtD(l)}`;
+
+  chatKey = 'wv-' + hash(msgs.slice(0, 50).map(m => m.text).join('|') + msgs.length);
+  try { stars = new Set(JSON.parse(localStorage.getItem(chatKey + '-stars') || '[]')); } catch { stars = new Set(); }
+  try { me = localStorage.getItem(chatKey + '-me') || people[0] || ''; } catch { me = people[0] || ''; }
+
+  people.forEach((p, k) => colors[p] = `hsl(${(k * 137.5 + 160) % 360} 65% ${matchMedia('(prefers-color-scheme: dark)').matches ? 65 : 38}%)`);
+
+  $('#me').innerHTML = people.map(p => `<option>${esc(p)}</option>`).join('');
+  $('#me').value = me;
+  $('#people').innerHTML = people.map(p => `<label class="chk"><input type="checkbox" checked data-p="${esc(p)}"><span class="dot" style="background:${colors[p]}"></span>${esc(p)}</label>`).join('');
+  const iso = d => d.toISOString().slice(0, 10);
+  [$('#from'), $('#to'), $('#jump')].forEach(i => { i.min = iso(f); i.max = iso(l); });
+
+  $('#drop').classList.add('hidden');
+  $('#app').classList.remove('hidden');
+  render(); renderStars(); renderStats(); applyFilters();
+  $('#chat').scrollTop = $('#chat').scrollHeight;
+}
+
+/* ================= Render ================= */
+function render() {
+  const chat = $('#chat');
+  chat.innerHTML = ''; elById.clear(); highlighted = [];
+  const frag = document.createDocumentFragment();
+  let dayEl = null, lastDay = '', lastSender = null;
+  for (const m of msgs) {
+    const dk = m.date.toDateString();
+    if (dk !== lastDay) {
+      dayEl = document.createElement('div'); dayEl.className = 'day';
+      dayEl.innerHTML = `<div class="day-sep"><span>${fmtDay(m.date)}</span></div>`;
+      frag.appendChild(dayEl); lastDay = dk; lastSender = null;
+    }
+    const el = document.createElement('div');
+    el.id = 'm' + m.i;
+    if (m.sys) {
+      el.className = 'sys';
+      el.innerHTML = `<span>${esc(m.text)}</span>`;
+    } else {
+      const out = m.sender === me;
+      const first = m.sender !== lastSender;
+      el.className = `msg ${out ? 'out' : 'in'}${first ? ' first' : ''}${m.kind === 'deleted' ? ' deleted' : ''}${stars.has(m.i) ? ' starred' : ''}`;
+      el.innerHTML = `<div class="bubble">${first && !out ? `<div class="sender" style="color:${colors[m.sender]}">${esc(m.sender)}</div>` : ''}${mediaHtml(m)}<div class="txt">${body(m)}</div><div class="foot">${m.edited ? 'Editado · ' : ''}${fmtT(m.date)}<button class="star${stars.has(m.i) ? ' on' : ''}" data-i="${m.i}" title="Marcar">${stars.has(m.i) ? '★' : '☆'}</button></div></div>`;
+      lastSender = m.sender;
+    }
+    elById.set(m.i, el);
+    dayEl.appendChild(el);
+  }
+  chat.appendChild(frag);
+}
+
+function body(m, q) {
+  if (m.kind === 'omit') return `<span class="omit">📎 ${esc(m.text)}</span>`;
+  if (m.kind === 'deleted') return `🚫 ${esc(m.text)}`;
+  return fmtText(m.text, q);
+}
+
+function mediaHtml(m) {
+  if (m.kind !== 'media') return '';
+  const url = mediaMap.get(m.media);
+  const n = esc(m.media);
+  if (!url) return `<div class="media omit">📎 ${n}</div>`;
+  const e = m.media.split('.').pop().toLowerCase();
+  if (/^(jpe?g|png|gif|webp)$/.test(e)) return `<div class="media"><a href="${url}" target="_blank"><img loading="lazy" src="${url}" alt="${n}"></a></div>`;
+  if (/^(mp4|mov|3gp)$/.test(e)) return `<div class="media"><video controls preload="none" src="${url}"></video></div>`;
+  if (/^(opus|ogg|mp3|m4a|aac)$/.test(e)) return `<div class="media"><audio controls preload="none" src="${url}"></audio></div>`;
+  return `<div class="media"><a class="file" href="${url}" download="${n}">📄 ${n}</a></div>`;
+}
+
+function fmtText(t, q) {
+  let s = esc(t);
+  s = s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+  s = s.replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s.,!?)]|$)/g, '$1<b>$2</b>')
+       .replace(/(^|[\s(])_([^_\n]+)_(?=[\s.,!?)]|$)/g, '$1<i>$2</i>')
+       .replace(/(^|[\s(])~([^~\n]+)~(?=[\s.,!?)]|$)/g, '$1<s>$2</s>');
+  if (q) s = markText(s, q);
+  return s;
+}
+
+// Resalta coincidencias sin tocar etiquetas HTML, ignorando acentos y mayúsculas
+function markText(html, q) {
+  const nq = norm(q);
+  return html.replace(/(<[^>]+>)|([^<]+)/g, (all, tag, txt) => {
+    if (tag) return tag;
+    const n = norm(txt); let out = '', pos = 0, k;
+    while ((k = n.indexOf(nq, pos)) > -1) { out += txt.slice(pos, k) + '<mark>' + txt.slice(k, k + nq.length) + '</mark>'; pos = k + nq.length; }
+    return out + txt.slice(pos);
+  });
+}
+
+/* ================= Estrellas ================= */
+$('#chat').addEventListener('click', e => {
+  const b = e.target.closest('.star'); if (!b) return;
+  toggleStar(+b.dataset.i);
+});
+function toggleStar(i) {
+  stars.has(i) ? stars.delete(i) : stars.add(i);
+  try { localStorage.setItem(chatKey + '-stars', JSON.stringify([...stars])); } catch {}
+  const el = elById.get(i), on = stars.has(i);
+  el.classList.toggle('starred', on);
+  const b = el.querySelector('.star'); b.classList.toggle('on', on); b.textContent = on ? '★' : '☆';
+  renderStars();
+  if ($('#onlyStar').checked) applyFilters();
+}
+function renderStars() {
+  const list = [...stars].sort((a, b) => a - b).map(i => msgs[i]).filter(Boolean);
+  $('#starList').innerHTML = list.length ? list.map(resHtml).join('') : '<div class="empty">Aún no hay mensajes marcados.</div>';
+}
+$('#exportBtn').onclick = () => {
+  const list = [...stars].sort((a, b) => a - b).map(i => msgs[i]);
+  if (!list.length) return;
+  const txt = list.map(m => `[${fmtD(m.date)} ${fmtT(m.date)}] ${m.sender}: ${m.media ? '<' + m.media + '> ' : ''}${m.text}`).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([txt], {type: 'text/plain;charset=utf-8'}));
+  a.download = 'mensajes-marcados.txt'; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+
+/* ================= Búsqueda ================= */
+let qTimer;
+$('#q').addEventListener('input', () => { clearTimeout(qTimer); qTimer = setTimeout(search, 180); });
+function search() {
+  const q = $('#q').value.trim();
+  highlighted.forEach(i => { const el = elById.get(i); const t = el.querySelector('.txt'); if (t) t.innerHTML = body(msgs[i]); });
+  highlighted = [];
+  if (q.length < 2) { $('#qCount').textContent = q ? 'Escribe al menos 2 letras' : ''; $('#qRes').innerHTML = ''; return; }
+  const nq = norm(q);
+  const hits = msgs.filter(m => !m.sys && norm(m.text + ' ' + (m.media || '')).includes(nq));
+  $('#qCount').textContent = `${hits.length.toLocaleString('es')} resultado${hits.length === 1 ? '' : 's'}`;
+  hits.forEach(m => { const t = elById.get(m.i).querySelector('.txt'); if (t && (m.kind === 'text' || m.kind === 'media')) { t.innerHTML = fmtText(m.text, q); highlighted.push(m.i); } });
+  $('#qRes').innerHTML = hits.slice(0, 500).map(m => resHtml(m, q)).join('') + (hits.length > 500 ? '<div class="empty">Mostrando los primeros 500. Afina la búsqueda.</div>' : '');
+}
+function resHtml(m, q) {
+  let s = m.text.replace(/\s+/g, ' ');
+  if (q) { const k = norm(s).indexOf(norm(q)); if (k > 60) s = '…' + s.slice(k - 40); }
+  if (s.length > 160) s = s.slice(0, 160) + '…';
+  const snip = q ? markText(esc(s), q) : esc(s || (m.media ? '📎 ' + m.media : ''));
+  return `<div class="res" data-go="${m.i}"><div class="meta"><span style="color:${colors[m.sender]};font-weight:600">${esc(m.sender)}</span><span>${fmtD(m.date)} ${fmtT(m.date)}</span></div><div class="snip">${snip}</div></div>`;
+}
+document.addEventListener('click', e => {
+  const r = e.target.closest('[data-go]'); if (!r) return;
+  goTo(+r.dataset.go);
+});
+function goTo(i) {
+  const el = elById.get(i); if (!el) return;
+  if (el.classList.contains('hidden')) { resetFilters(); }
+  el.scrollIntoView({block: 'center', behavior: 'smooth'});
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  $('#side').classList.remove('open');
+}
+
+/* ================= Filtros ================= */
+$('#me').onchange = e => { me = e.target.value; try { localStorage.setItem(chatKey + '-me', me); } catch {} const s = $('#chat').scrollTop; render(); applyFilters(); search(); $('#chat').scrollTop = s; };
+['#from', '#to', '#onlyStar', '#hideSys'].forEach(s => $(s).addEventListener('change', applyFilters));
+$('#people').addEventListener('change', applyFilters);
+$('#resetBtn').onclick = resetFilters;
+function resetFilters() {
+  $('#from').value = $('#to').value = ''; $('#onlyStar').checked = false;
+  $$('#people input').forEach(c => c.checked = true); applyFilters();
+}
+function applyFilters() {
+  const allowed = new Set($$('#people input:checked').map(c => c.dataset.p));
+  const from = $('#from').value ? new Date($('#from').value + 'T00:00') : null;
+  const to = $('#to').value ? new Date($('#to').value + 'T23:59:59') : null;
+  const onlyStar = $('#onlyStar').checked, hideSys = $('#hideSys').checked;
+  for (const m of msgs) {
+    let show = true;
+    if (m.sys) show = !hideSys && !onlyStar;
+    else if (!allowed.has(m.sender) || (onlyStar && !stars.has(m.i))) show = false;
+    if (from && m.date < from || to && m.date > to) show = false;
+    elById.get(m.i).classList.toggle('hidden', !show);
+  }
+  $$('.day').forEach(d => d.classList.toggle('hidden', !d.querySelector('.msg:not(.hidden),.sys:not(.hidden)')));
+}
+$('#jumpBtn').onclick = () => {
+  const v = $('#jump').value; if (!v) return;
+  const d = new Date(v + 'T00:00');
+  const m = msgs.find(m => m.date >= d && !elById.get(m.i).classList.contains('hidden')) || msgs[msgs.length - 1];
+  goTo(m.i);
+};
+
+/* ================= Estadísticas ================= */
+function renderStats() {
+  const real = msgs.filter(m => !m.sys);
+  const byP = {}, words = {}, hours = Array(24).fill(0), months = new Map(), wd = Array(7).fill(0);
+  let media = 0, deleted = 0;
+  for (const m of real) {
+    byP[m.sender] = (byP[m.sender] || 0) + 1;
+    words[m.sender] = (words[m.sender] || 0) + (m.kind === 'text' ? m.text.split(/\s+/).filter(Boolean).length : 0);
+    hours[m.date.getHours()]++; wd[(m.date.getDay() + 6) % 7]++;
+    const mk = m.date.getFullYear() + '-' + String(m.date.getMonth() + 1).padStart(2, '0');
+    months.set(mk, (months.get(mk) || 0) + 1);
+    if (m.kind === 'media' || m.kind === 'omit') media++;
+    if (m.kind === 'deleted') deleted++;
+  }
+  const days = new Set(real.map(m => m.date.toDateString())).size;
+  const maxP = Math.max(...Object.values(byP), 1);
+  const bars = arr => { const mx = Math.max(...arr, 1); return `<div class="bars">${arr.map(v => `<div style="height:${v / mx * 100}%" title="${v}"></div>`).join('')}</div>`; };
+  const mArr = [...months.entries()];
+  const busiest = [...real.reduce((acc, m) => { const k = m.date.toDateString(); acc.set(k, (acc.get(k) || 0) + 1); return acc; }, new Map())].sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+  $('#stats').innerHTML = `
+    <div class="stat-grid">
+      <div class="stat"><b>${real.length.toLocaleString('es')}</b><span>mensajes</span></div>
+      <div class="stat"><b>${days}</b><span>días con actividad</span></div>
+      <div class="stat"><b>${media}</b><span>multimedia</span></div>
+      <div class="stat"><b>${deleted}</b><span>eliminados</span></div>
+    </div>
+    <h3>Por participante</h3>
+    ${people.map(p => `<div class="hbar"><div class="l"><span>${esc(p)}</span><span>${byP[p].toLocaleString('es')} · ${(words[p] || 0).toLocaleString('es')} palabras</span></div><div class="b"><i style="width:${byP[p] / maxP * 100}%;background:${colors[p]}"></i></div></div>`).join('')}
+    <h3>Por hora del día</h3>
+    ${bars(hours)}<div class="bars-x"><span>0h</span><span>6h</span><span>12h</span><span>18h</span><span>23h</span></div>
+    <h3>Por día de la semana</h3>
+    ${bars(wd)}<div class="bars-x">${['L','M','X','J','V','S','D'].map(d => `<span>${d}</span>`).join('')}</div>
+    <h3>Por mes</h3>
+    ${bars(mArr.map(e => e[1]))}<div class="bars-x"><span>${mArr[0] ? mLabel(mArr[0][0]) : ''}</span><span>${mArr.length ? mLabel(mArr[mArr.length - 1][0]) : ''}</span></div>
+    <h3>Días con más mensajes</h3>
+    ${busiest.map(([k, v]) => { const m = real.find(x => x.date.toDateString() === k); return `<div class="res" data-go="${m.i}"><div class="meta"><span>${fmtDay(m.date)}</span><span>${v} mensajes</span></div></div>`; }).join('')}
+  `;
+}
+const mLabel = k => { const [y, m] = k.split('-'); return new Date(+y, +m - 1).toLocaleDateString('es', {month: 'short', year: '2-digit'}); };
+
+/* ================= UI general ================= */
+$$('.tabs button').forEach(b => b.onclick = () => {
+  $$('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  $$('.pane').forEach(p => p.classList.toggle('hidden', p.dataset.pane !== b.dataset.tab));
+});
+$('#menuBtn').onclick = () => $('#side').classList.toggle('open');
+$('#closeBtn').onclick = () => {
+  mediaMap.forEach(u => URL.revokeObjectURL(u)); mediaMap = new Map();
+  msgs = []; $('#chat').innerHTML = ''; $('#q').value = ''; $('#qRes').innerHTML = ''; $('#qCount').textContent = '';
+  $('#file').value = ''; $('#app').classList.add('hidden'); $('#drop').classList.remove('hidden');
+  document.title = 'Visor de Chats';
+};
+
+/* ================= Utilidades ================= */
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+function norm(s) { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+function hash(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+function fmtT(d) { return d.toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit'}); }
+function fmtD(d) { return d.toLocaleDateString('es', {day: '2-digit', month: '2-digit', year: 'numeric'}); }
+function fmtDay(d) {
+  const s = d.toLocaleDateString('es', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+# No subir nunca chats reales ni su multimedia al repositorio
+*.txt
+*.zip
+*.opus
+*.jpg
+*.jpeg
+*.png
+*.mp4
+*.webp
+chats/
