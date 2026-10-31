@@ -50,6 +50,7 @@ button{cursor:pointer}
 .btn.small{padding:6px 12px;font-size:13px}
 .privacy{font-size:13px;margin-top:18px!important}
 #err{color:#d33;margin-top:12px}
+.linkbtn{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:13px}
 
 /* ---------- App ---------- */
 #app{display:grid;grid-template-columns:340px 1fr;height:100%}
@@ -203,7 +204,11 @@ mark{background:var(--mark);color:inherit;border-radius:3px;padding:0 1px}
     <p>Arrastra aquí el archivo exportado (<b>.txt</b> o <b>.zip</b> con multimedia)</p>
     <p style="margin:18px 0"><button class="btn" id="pickBtn">Elegir archivo</button></p>
     <input type="file" id="file" accept=".txt,.zip" class="hidden">
-    <p class="privacy">🔒 Todo se procesa en tu navegador. El archivo no se sube a ningún servidor.</p>
+    <div id="lastBox" class="hidden">
+      <p><button class="btn ghost" id="lastBtn">Abrir el último chat</button></p>
+      <p><button class="linkbtn" id="forgetBtn">Borrar el chat guardado de este navegador</button></p>
+    </div>
+    <p class="privacy">🔒 Todo se procesa en tu navegador y no se sube a ningún servidor. El último chat queda guardado solo en este navegador para abrirlo rápido.</p>
     <div id="err"></div>
   </div>
 </section>
@@ -231,6 +236,11 @@ mark{background:var(--mark);color:inherit;border-radius:3px;padding:0 1px}
     </div>
 
     <div class="pane hidden" data-pane="filters">
+      <div class="field">
+        <label class="t">Nombres</label>
+        <label class="chk"><input type="checkbox" id="anonOn"> Ocultar nombres reales</label>
+        <div id="aliases"></div>
+      </div>
       <div class="field">
         <label class="t">Yo soy (mis mensajes a la derecha)</label>
         <select class="input" id="me"></select>
@@ -300,6 +310,7 @@ let me = '';
 let elById = new Map();
 let highlighted = [];
 const colors = {};
+let rawText = '', rawName = '', realPeople = [], anon = null;
 
 /* ================= Tema ================= */
 const root = document.documentElement;
@@ -339,9 +350,9 @@ async function load(file) {
     } else {
       text = await file.text();
     }
-    parse(text);
-    if (!msgs.length) throw new Error('No se reconocieron mensajes. ¿Es un chat exportado de WhatsApp?');
-    start(name);
+    rawText = text; rawName = name;
+    if (!boot()) throw new Error('No se reconocieron mensajes. ¿Es un chat exportado de WhatsApp?');
+    try { localStorage.setItem('wv-last', JSON.stringify({name, text})); } catch {}
   } catch (err) {
     $('#err').textContent = err.message || String(err);
   }
@@ -361,7 +372,7 @@ function mimeOf(n) {
 const RE = /^\[?(\d{1,4})[\/.\-](\d{1,2})[\/.\-](\d{1,4}),?\s+(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?\s*([ap]\.?\s?m\.?)?\]?\s*(?:[-–]\s)?\s*(.*)$/i;
 
 function parse(raw) {
-  const lines = raw.replace(/\r/g, '').replace(/[‎‏‪-‮﻿]/g, '').replace(/[  ]/g, ' ').split('\n');
+  const lines = raw.replace(/\r/g, '').replace(/[‎‏‪-‮⁦-⁩﻿]/g, '').replace(/[  ]/g, ' ').split('\n');
   const rows = [];
   for (const line of lines) {
     const m = line.match(RE);
@@ -415,18 +426,79 @@ function classify(m) {
   if (m.edited) m.text = m.text.replace(/\s*<(se editó este mensaje|this message was edited|mensaje editado)\.?>\s*$/i, '');
 }
 
+/* ================= Alias (ocultar nombres) ================= */
+function boot() {
+  parse(rawText);
+  if (!msgs.length) return false;
+  chatKey = 'wv-' + hash(msgs.slice(0, 50).map(m => m.text).join('|') + msgs.length);
+  realPeople = people.slice();
+  anon = null;
+  try { anon = JSON.parse(localStorage.getItem(chatKey + '-anon') || 'null'); } catch {}
+  if (!anon || !Array.isArray(anon.names)) anon = {on: true, names: []};
+  realPeople.forEach((_, k) => { if (!anon.names[k]) anon.names[k] = 'Persona ' + (k + 1); });
+  if (anon.on) applyAliases();
+  start(rawName);
+  return true;
+}
+function applyAliases() {
+  const used = new Set(), map = new Map();
+  realPeople.forEach((p, k) => {
+    let a = (anon.names[k] || '').trim() || 'Persona ' + (k + 1);
+    if (used.has(a)) a = 'Persona ' + (k + 1);
+    used.add(a); map.set(p, a);
+  });
+  // Reemplaza también el nombre completo y el primer nombre dentro de los textos
+  const rules = [];
+  realPeople.forEach(p => {
+    const forms = [p, p.split(/\s+/)[0]].filter((f, i, arr) => f.length >= 3 && arr.indexOf(f) === i);
+    // la palabra entera que contenga el nombre: cubre apodos y estirados (ej. "Anaaa", "Anucha")
+    forms.forEach(f => rules.push([new RegExp('(^|[^\\p{L}\\p{N}_])[\\p{L}\\p{N}_]*' + f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+') + '[\\p{L}\\p{N}_]*', 'giu'), map.get(p)]));
+  });
+  rules.sort((a, b) => b[0].source.length - a[0].source.length);
+  for (const m of msgs) {
+    if (m.sender) m.sender = map.get(m.sender) || m.sender;
+    for (const [re, a] of rules) m.text = m.text.replace(re, (x, pre) => pre + a);
+  }
+  people = people.map(p => map.get(p) || p);
+}
+function saveAnon() { try { localStorage.setItem(chatKey + '-anon', JSON.stringify(anon)); } catch {} }
+function reboot() {
+  const inAn = !$('#analysis').classList.contains('hidden');
+  boot();
+  if (inAn) setView('an');
+}
+$('#anonOn').addEventListener('change', e => { anon.on = e.target.checked; saveAnon(); reboot(); });
+$('#aliases').addEventListener('change', e => {
+  const k = +e.target.dataset.k; if (isNaN(k)) return;
+  anon.names[k] = e.target.value.trim() || 'Persona ' + (k + 1); saveAnon(); reboot();
+});
+function autoOpen() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem('wv-last') || 'null'); } catch {}
+  if (!saved || !saved.text) return false;
+  rawText = saved.text; rawName = saved.name || 'Chat';
+  return boot();
+}
+function refreshLastBox() {
+  let has = false; try { has = !!localStorage.getItem('wv-last'); } catch {}
+  $('#lastBox').classList.toggle('hidden', !has);
+}
+$('#lastBtn').onclick = () => { if (!autoOpen()) refreshLastBox(); };
+$('#forgetBtn').onclick = () => { try { localStorage.removeItem('wv-last'); } catch {} refreshLastBox(); };
+
 /* ================= Inicio ================= */
 function start(fileName) {
-  const title = fileName.replace(/^.*\//, '').replace(/\.txt$/i, '').replace(/^(Chat de WhatsApp con|WhatsApp Chat with|Conversa do WhatsApp com)\s*/i, '').replace(/^_chat$/, '') || (people.slice(0, 2).join(' y ') || 'Chat');
+  const title = anon && anon.on ? (people.slice(0, 2).join(' y ') || 'Chat') : fileName.replace(/^.*\//, '').replace(/\.txt$/i, '').replace(/^(Chat de WhatsApp con|WhatsApp Chat with|Conversa do WhatsApp com)\s*/i, '').replace(/^_chat$/, '') || (people.slice(0, 2).join(' y ') || 'Chat');
   $('#chatName').textContent = title;
   $('#sideTitle').textContent = title;
   document.title = title + ' · Visor de Chats';
   const f = msgs[0].date, l = msgs[msgs.length - 1].date;
   $('#chatSub').textContent = `${people.length} participantes · ${msgs.length.toLocaleString('es')} mensajes · ${fmtD(f)} – ${fmtD(l)}`;
 
-  chatKey = 'wv-' + hash(msgs.slice(0, 50).map(m => m.text).join('|') + msgs.length);
   try { stars = new Set(JSON.parse(localStorage.getItem(chatKey + '-stars') || '[]')); } catch { stars = new Set(); }
-  try { me = localStorage.getItem(chatKey + '-me') || people[0] || ''; } catch { me = people[0] || ''; }
+  try { me = people[+localStorage.getItem(chatKey + '-meIdx') || 0] || people[0] || ''; } catch { me = people[0] || ''; }
+  $('#anonOn').checked = anon.on;
+  $('#aliases').innerHTML = anon.on ? realPeople.map((_, k) => `<input class="input" style="margin-top:6px" data-k="${k}" value="${esc(people[k])}" placeholder="Participante ${k + 1}" aria-label="Alias del participante ${k + 1}">`).join('') + '<p class="count" style="margin-top:6px">Ordenados por cantidad de mensajes. Escribí el alias que quieras.</p>' : '';
 
   people.forEach((p, k) => colors[p] = k < 6 ? `var(--p${k})` : 'var(--muted)');
 
@@ -578,7 +650,7 @@ function goTo(i) {
 }
 
 /* ================= Filtros ================= */
-$('#me').onchange = e => { me = e.target.value; try { localStorage.setItem(chatKey + '-me', me); } catch {} const s = $('#chat').scrollTop; render(); applyFilters(); search(); $('#chat').scrollTop = s; };
+$('#me').onchange = e => { me = e.target.value; try { localStorage.setItem(chatKey + '-meIdx', people.indexOf(me)); } catch {} const s = $('#chat').scrollTop; render(); applyFilters(); search(); $('#chat').scrollTop = s; };
 ['#from', '#to', '#onlyStar', '#hideSys'].forEach(s => $(s).addEventListener('change', applyFilters));
 $('#people').addEventListener('change', applyFilters);
 $('#resetBtn').onclick = resetFilters;
@@ -1024,6 +1096,7 @@ $('#closeBtn').onclick = () => {
   msgs = []; $('#chat').innerHTML = ''; $('#q').value = ''; $('#qRes').innerHTML = ''; $('#qCount').textContent = '';
   $('#file').value = ''; $('#app').classList.add('hidden'); $('#drop').classList.remove('hidden');
   document.title = 'Visor de Chats';
+  refreshLastBox();
 };
 
 /* ================= Utilidades ================= */
@@ -1036,6 +1109,7 @@ function fmtDay(d) {
   const s = d.toLocaleDateString('es', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
+if (!autoOpen()) refreshLastBox();
 })();
 </script>
 </body>

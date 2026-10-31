@@ -10,6 +10,9 @@ Todo se procesa localmente en el navegador; el archivo no se sube a ningún siti
 El `.gitignore` evita que se suban chats o fotos al repositorio por error.
 
 ## Funciones
+- Nombres ocultos por defecto (Persona 1, Persona 2…), con alias editables en *Filtros*.
+  También se reemplazan los nombres y apodos que aparecen dentro de los mensajes.
+- Recuerda el último chat en el navegador: al volver a abrir la página aparece cargado.
 - Burbujas tipo chat, separadores por día, colores por participante, modo oscuro.
 - Fotos, vídeos, audios y documentos si se carga el `.zip` con multimedia.
 - Búsqueda (ignora acentos y mayúsculas) con resaltado y salto al mensaje.
