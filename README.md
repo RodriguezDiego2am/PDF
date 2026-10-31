@@ -16,4 +16,7 @@ El `.gitignore` evita que se suban chats o fotos al repositorio por error.
 - Filtros por participante y rango de fechas; ir a una fecha concreta.
 - Marcar mensajes con ☆ y exportar los marcados a `.txt`.
 - Estadísticas: mensajes por persona, por hora, por día de la semana y por mes.
+- Vista **Análisis**: veredicto con humor, premios automáticos, cara a cara, evolución semanal,
+  mapa de calor día/hora, mejores momentos (con salto al chat), palabras y emojis por persona
+  y detector de palabras. Todo calculado en el navegador a partir del archivo cargado.
 - Formatos de exportación de Android e iOS, 12 h / 24 h, día/mes o mes/día.

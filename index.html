@@ -11,6 +11,8 @@
   --text:#1f2328; --muted:#6b7280; --accent:#0f8a6c; --accent-soft:#d8f0e8;
   --in:#ffffff; --out:#d9fdd3; --sys:#fff6d6; --mark:#ffd84d; --star:#e0a100;
   --shadow:0 1px 1.5px rgba(0,0,0,.12);
+  --p0:#2a78d6; --p1:#eb6834; --p2:#1baf7a; --p3:#eda100; --p4:#e87ba4; --p5:#008300;
+  --h1:#cde2fb; --h2:#9ec5f4; --h3:#5598e7; --h4:#2a78d6; --h5:#184f95;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -18,6 +20,8 @@
     --text:#e9edef; --muted:#8696a0; --accent:#25c08f; --accent-soft:#103a30;
     --in:#202c33; --out:#005c4b; --sys:#2a2f1f; --mark:#b38b00; --star:#ffc93c;
     --shadow:0 1px 1.5px rgba(0,0,0,.4);
+    --p0:#3987e5; --p1:#d95926; --p2:#199e70; --p3:#c98500; --p4:#d55181; --p5:#008300;
+    --h1:#104281; --h2:#1c5cab; --h3:#2a78d6; --h4:#5598e7; --h5:#9ec5f4;
   }
 }
 :root[data-theme="dark"]{
@@ -25,6 +29,8 @@
   --text:#e9edef; --muted:#8696a0; --accent:#25c08f; --accent-soft:#103a30;
   --in:#202c33; --out:#005c4b; --sys:#2a2f1f; --mark:#b38b00; --star:#ffc93c;
   --shadow:0 1px 1.5px rgba(0,0,0,.4);
+  --p0:#3987e5; --p1:#d95926; --p2:#199e70; --p3:#c98500; --p4:#d55181; --p5:#008300;
+  --h1:#104281; --h2:#1c5cab; --h3:#2a78d6; --h4:#5598e7; --h5:#9ec5f4;
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
@@ -122,6 +128,70 @@ mark{background:var(--mark);color:inherit;border-radius:3px;padding:0 1px}
   .bubble{max-width:85%}
   .star{opacity:.6}
 }
+
+/* ---------- Vista de análisis ---------- */
+.seg{display:flex;background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:2px}
+.seg button{background:none;border:0;border-radius:999px;padding:5px 12px;font-size:13.5px;color:var(--muted);white-space:nowrap}
+.seg button.on{background:var(--accent);color:#fff;font-weight:600}
+#analysis{flex:1;overflow:auto;min-height:0;padding:20px 16px 60px}
+.an{max-width:1040px;margin:0 auto;display:grid;gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 18px 16px}
+.card h2{margin:0 0 4px;font-size:18px}
+.card .sub{color:var(--muted);font-size:13.5px;margin:0 0 14px}
+.hero{background:linear-gradient(135deg,var(--accent-soft),var(--panel));}
+.hero h1{margin:0 0 6px;font-size:clamp(22px,4vw,32px);line-height:1.15}
+.hero p{margin:0;color:var(--muted)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:16px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.tile b{display:block;font-size:24px;line-height:1.1;font-variant-numeric:tabular-nums}
+.tile span{font-size:12.5px;color:var(--muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.verdict li{margin:0 0 10px;padding-left:4px}
+.verdict li::marker{content:"🔥 "}
+.awards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.award{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--panel-2)}
+.award .ico{font-size:26px}
+.award .t{font-weight:700;margin:4px 0 2px}
+.award .w{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px}
+.award .c{font-size:13.5px;color:var(--muted);margin-top:4px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted);margin-bottom:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.vs{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.vs th,.vs td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:right}
+.vs th:first-child,.vs td:first-child{text-align:left;color:var(--muted);font-weight:400}
+.vs td.win{font-weight:700}
+.vs td.win::after{content:" 👑";font-size:12px}
+.heat{display:grid;grid-template-columns:34px repeat(24,1fr);gap:2px;font-size:11px;color:var(--muted)}
+.heat .c{aspect-ratio:1;border-radius:3px;background:var(--panel-2);min-width:0}
+.heat .lab{display:flex;align-items:center}
+.heat .hx{text-align:center}
+.weeks{display:flex;align-items:flex-end;gap:2px;height:160px;border-bottom:1px solid var(--line)}
+.weeks .w{flex:1;display:flex;flex-direction:column-reverse;gap:1px;height:100%;justify-content:flex-start;min-width:0;cursor:default}
+.weeks .w i{display:block;width:100%}
+.weeks .w i:last-child{border-radius:4px 4px 0 0}
+.weeks .w:hover i{filter:brightness(1.15)}
+.wx{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-top:4px}
+.moments{display:grid;gap:8px}
+.moment{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--panel-2)}
+.moment .ico{font-size:22px;flex:none}
+.moment .body{flex:1;min-width:0}
+.moment .body b{display:block}
+.moment .body span{font-size:13px;color:var(--muted)}
+.go{background:none;border:1px solid var(--accent);color:var(--accent);border-radius:999px;padding:5px 12px;font-size:13px;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:13.5px}
+.chip small{color:var(--muted);margin-left:4px;font-variant-numeric:tabular-nums}
+.who{font-weight:700;display:flex;align-items:center;gap:6px;margin:6px 0 8px}
+.kw{display:flex;gap:8px;margin-bottom:12px}
+.kw-res .hbar{margin:8px 0}
+#tip{position:fixed;z-index:50;pointer-events:none;background:var(--text);color:var(--panel);font-size:12.5px;padding:6px 9px;border-radius:8px;max-width:240px;white-space:pre-line;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+@media (max-width:820px){
+  .two{grid-template-columns:1fr}
+  .seg button{padding:5px 9px;font-size:12.5px}
+  .top .title span{display:none}
+  .heat{grid-template-columns:26px repeat(24,1fr);gap:1px}
+  .heat .hx:nth-child(even){visibility:hidden}
+}
 </style>
 </head>
 <body>
@@ -205,9 +275,12 @@ mark{background:var(--mark);color:inherit;border-radius:3px;padding:0 1px}
     <div class="top">
       <button class="iconbtn" id="menuBtn" aria-label="Menú">☰</button>
       <div class="title"><b id="chatName">Chat</b><span id="chatSub"></span></div>
+      <div class="seg" role="tablist"><button id="vChat" class="on">💬 Chat</button><button id="vAn">📊 Análisis</button></div>
       <button class="iconbtn" id="themeBtn" aria-label="Cambiar tema">◐</button>
     </div>
     <div id="chat"></div>
+    <div id="analysis" class="hidden"></div>
+    <div id="tip" class="hidden"></div>
   </main>
 </div>
 
@@ -355,7 +428,7 @@ function start(fileName) {
   try { stars = new Set(JSON.parse(localStorage.getItem(chatKey + '-stars') || '[]')); } catch { stars = new Set(); }
   try { me = localStorage.getItem(chatKey + '-me') || people[0] || ''; } catch { me = people[0] || ''; }
 
-  people.forEach((p, k) => colors[p] = `hsl(${(k * 137.5 + 160) % 360} 65% ${matchMedia('(prefers-color-scheme: dark)').matches ? 65 : 38}%)`);
+  people.forEach((p, k) => colors[p] = k < 6 ? `var(--p${k})` : 'var(--muted)');
 
   $('#me').innerHTML = people.map(p => `<option>${esc(p)}</option>`).join('');
   $('#me').value = me;
@@ -365,7 +438,7 @@ function start(fileName) {
 
   $('#drop').classList.add('hidden');
   $('#app').classList.remove('hidden');
-  render(); renderStars(); renderStats(); applyFilters();
+  render(); renderStars(); renderStats(); applyFilters(); renderAnalysis(); setView('chat');
   $('#chat').scrollTop = $('#chat').scrollHeight;
 }
 
@@ -497,6 +570,7 @@ document.addEventListener('click', e => {
 });
 function goTo(i) {
   const el = elById.get(i); if (!el) return;
+  setView('chat');
   if (el.classList.contains('hidden')) { resetFilters(); }
   el.scrollIntoView({block: 'center', behavior: 'smooth'});
   el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
@@ -573,6 +647,371 @@ function renderStats() {
   `;
 }
 const mLabel = k => { const [y, m] = k.split('-'); return new Date(+y, +m - 1).toLocaleDateString('es', {month: 'short', year: '2-digit'}); };
+
+/* ================= Análisis profundo =================
+   Todo se calcula en el navegador a partir del archivo cargado.
+   Los textos con humor son plantillas genéricas que se completan con los números. */
+const H = 3600e3, DAY = 864e5;
+const SESSION_GAP = 4 * H;      // más de 4 h sin mensajes = charla nueva
+const REPLY_MAX = 12 * H;       // respuestas más lentas no cuentan para la mediana
+const DOW = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+const STOP = new Set(('a al algo algun alguna algunas alguno algunos ante antes asi aun aunque bien cada como con contra cual cuando de del desde donde dos el ella ellas ellos en entre era eran es esa esas ese eso esos esta estaba estan estar estas este esto estos estoy fue fueron ha hace hacer hay he hoy la las le les lo los mas me mi mis mucho muy nada ni no nos nosotros o os otra otro para pero poco por porque que quien se sea ser si sin sobre solo son su sus tambien tan tanto te tenes tengo ti tiene tu tus un una uno unos vos y ya yo q xq pq k d x eh ah oh bueno re igual ahi aca alla va voy vas sos estas esta dale bueno osea o sea mas menos tipo onda nomas che jaja jajaja jajajaja jsjs ok okey si no ese esa todo toda todos todas cosa algo vez ver dice digo dijo era ser vamos the and you multimedia omitido omitida imagen audio sticker video gif documento mensaje eliminaste elimino edito adjunto http https www com').split(' '));
+
+const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+const nf = n => Math.round(n).toLocaleString('es');
+const median = a => { if (!a.length) return NaN; const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+function fmtDur(ms) {
+  if (!isFinite(ms)) return '—';
+  const s = Math.round(ms / 1000);
+  if (s < 60) return s + ' s';
+  if (s < 3600) return Math.round(s / 60) + ' min';
+  if (s < 86400) { const h = Math.floor(s / 3600), m = Math.round(s % 3600 / 60); return h + ' h' + (m ? ' ' + m + ' min' : ''); }
+  const d = s / 86400; return (d < 10 ? d.toFixed(1).replace('.0', '') : Math.round(d)) + ' días';
+}
+function mediaType(m) {
+  const t = (m.media || m.text || '').toLowerCase();
+  if (m.kind !== 'media' && m.kind !== 'omit') return null;
+  if (/audio|ptt|\.opus|\.m4a|\.ogg|\.mp3/.test(t)) return 'audio';
+  if (/sticker|\.webp/.test(t)) return 'sticker';
+  if (/gif/.test(t)) return 'gif';
+  if (/video|\.mp4|\.mov|\.3gp/.test(t)) return 'video';
+  if (/imagen|image|photo|foto|img-|\.jpe?g|\.png/.test(t)) return 'foto';
+  if (/multimedia|media omitted/.test(t)) return 'multimedia';
+  return 'doc';
+}
+const RX = {
+  risa: /\b(?:a?j[aeiou]){2,}\w*|\bjsj\w*|\bxd+\b|😂|🤣/i,
+  amor: /\bte (?:amo|quiero|adoro)\b|\bte re quiero\b|\bte amito\b/i,
+  extra: /\bextra[nñ]/i,
+  apodo: /\b(?:amor|amorcito|bebe|beba|bb|mi vida|coraz[oó]n|bomb[oó]n|precios[ao]|lind[ao]|hermos[ao]|gord[ao]|mi rey|mi reina)\b/i,
+  perdon: /\bperd[oó]n|\bperdoname|\bdisculp/i,
+  corazon: /[❤♥💕💖💗💓💞💘💝😍🥰😘]/u,
+};
+const EMO = /\p{Extended_Pictographic}(?:️|‍\p{Extended_Pictographic}|[\u{1F3FB}-\u{1F3FF}])*/gu;
+
+function analyze() {
+  const real = msgs.filter(m => !m.sys);
+  const P = {};
+  const mk = () => ({n: 0, words: 0, chars: 0, textN: 0, resp: [], fast: 0, starts: 0, insist: 0, night: 0, work: 0,
+    media: {audio: 0, foto: 0, video: 0, sticker: 0, gif: 0, doc: 0, multimedia: 0}, deleted: 0, edited: 0,
+    risa: 0, amor: 0, extra: 0, apodo: 0, perdon: 0, corazon: 0, q: 0, wordF: new Map(), emoF: new Map(),
+    longest: null, maxRun: 0, maxRunAt: null, slowest: 0, slowestAt: null});
+  people.forEach(p => P[p] = mk());
+  const heat = Array.from({length: 7}, () => Array(24).fill(0));
+  const days = new Map(), sessions = [];
+  let run = 0, sess = null;
+  real.forEach((m, k) => {
+    const s = P[m.sender]; if (!s) return;
+    const prev = real[k - 1], gap = prev ? m.date - prev.date : Infinity;
+    const h = m.date.getHours(), dw = (m.date.getDay() + 6) % 7;
+    s.n++; heat[dw][h]++;
+    if (h < 6) s.night++;
+    if (dw < 5 && h >= 9 && h < 18) s.work++;
+    const dk = new Date(m.date.getFullYear(), m.date.getMonth(), m.date.getDate()).getTime();
+    days.set(dk, (days.get(dk) || 0) + 1);
+    // charlas
+    if (gap >= SESSION_GAP) { sess = {start: m.i, starter: m.sender, n: 0, t0: m.date, t1: m.date, night: 0}; sessions.push(sess); s.starts++; }
+    sess.n++; sess.t1 = m.date; if (h < 6) sess.night++;
+    // respuestas, insistencias, ráfagas
+    if (prev && prev.sender !== m.sender) {
+      if (gap < REPLY_MAX) { s.resp.push(gap); if (gap < 60e3) s.fast++; }
+      if (gap > s.slowest) { s.slowest = gap; s.slowestAt = m.i; }
+      run = 1;
+    } else {
+      run = prev ? run + 1 : 1;
+      if (prev && gap >= 20 * 60e3 && gap < SESSION_GAP * 6) s.insist++;
+    }
+    if (run > s.maxRun) { s.maxRun = run; s.maxRunAt = m.i - run + 1; }
+    // contenido
+    const mt = mediaType(m); if (mt) s.media[mt]++;
+    if (m.kind === 'deleted') s.deleted++;
+    if (m.edited) s.edited++;
+    if (m.kind === 'text' || (m.kind === 'media' && m.text)) {
+      const t = m.text;
+      s.textN++; s.chars += t.length;
+      const ws = t.toLowerCase().normalize('NFD').replace(/n\u0303/g, 'ñ').replace(/[\u0300-\u036f]/g, '').replace(/https?:\/\/\S+/g, ' ').match(/[a-zñ]{3,}/g) || [];
+      s.words += ws.length;
+      for (const w of ws) if (!STOP.has(w) && !/^(?:a?j[aeiou]){2,}/.test(w)) s.wordF.set(w, (s.wordF.get(w) || 0) + 1);
+      for (const e of t.match(EMO) || []) s.emoF.set(e, (s.emoF.get(e) || 0) + 1);
+      for (const key of ['risa', 'amor', 'extra', 'apodo', 'perdon', 'corazon']) if (RX[key].test(t)) s[key]++;
+      if (t.includes('?')) s.q++;
+      if (!s.longest || t.length > s.longest.len) s.longest = {len: t.length, i: m.i};
+    }
+  });
+  // días, rachas y silencios
+  const dayKeys = [...days.keys()].sort((a, b) => a - b);
+  let streak = 0, best = {len: 0, from: 0}, cur = 0, curFrom = 0;
+  dayKeys.forEach((d, k) => {
+    if (k && Math.round((d - dayKeys[k - 1]) / DAY) === 1) cur++; else { cur = 1; curFrom = d; }
+    if (cur > best.len) best = {len: cur, from: curFrom};
+  });
+  streak = best;
+  let silence = {gap: 0, at: null};
+  for (let k = 1; k < real.length; k++) { const g = real[k].date - real[k - 1].date; if (g > silence.gap) silence = {gap: g, at: real[k].i, from: real[k - 1].date}; }
+  // semanas
+  const t0 = real.length ? real[0].date : new Date(), t1 = real.length ? real[real.length - 1].date : new Date();
+  const monday = d => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - (x.getDay() + 6) % 7); return x; };
+  const w0 = monday(t0).getTime();
+  const nW = Math.max(1, Math.round((monday(t1).getTime() - w0) / (7 * DAY)) + 1);
+  const weeks = Array.from({length: nW}, (_, k) => ({t: new Date(w0 + k * 7 * DAY), by: Object.fromEntries(people.map(p => [p, 0])), n: 0, first: null}));
+  for (const m of real) {
+    const k = Math.min(nW - 1, Math.max(0, Math.round((monday(m.date).getTime() - w0) / (7 * DAY))));
+    weeks[k].by[m.sender]++; weeks[k].n++; if (weeks[k].first === null) weeks[k].first = m.i;
+  }
+  // meses
+  const months = new Map();
+  for (const m of real) { const key = m.date.getFullYear() * 12 + m.date.getMonth(); months.set(key, (months.get(key) || 0) + 1); }
+  // días top
+  const firstOfDay = new Map();
+  for (const m of real) { const dk = new Date(m.date.getFullYear(), m.date.getMonth(), m.date.getDate()).getTime(); if (!firstOfDay.has(dk)) firstOfDay.set(dk, m.i); }
+  const topDays = [...days.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([d, n]) => ({d: new Date(d), n, i: firstOfDay.get(d)}));
+  return {real, P, heat, days, dayKeys, sessions, streak, silence, weeks, months, topDays, t0, t1};
+}
+
+/* ---------- Plantillas con humor ---------- */
+function hourComment(h) {
+  if (h < 6) return 'Horario de gente que no debería estar despierta. A esa hora no se manda "buen día", se manda cualquier cosa.';
+  if (h < 12) return 'Arrancan el día pensándose. Ternura o alarma: elegí vos.';
+  if (h < 18) return 'Pleno horario laboral. Productividad del país: en caída libre.';
+  return 'Prime time, como las novelas de la tarde pero en versión nocturna.';
+}
+const MES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const monthName = key => `${MES[key % 12]} ${Math.floor(key / 12)}`;
+
+function verdicts(A) {
+  const out = [], tot = A.real.length, ps = people.filter(p => A.P[p].n);
+  if (ps.length >= 2) {
+    const [a, b] = ps;
+    const pa = pct(A.P[a].n, tot);
+    if (pa >= 60) out.push(`<b>${esc(a)}</b> pone el ${pa}% de los mensajes. Esto no es una charla, es un monólogo con público.`);
+    else if (pa <= 40) out.push(`<b>${esc(b)}</b> pone el ${100 - pa}% de los mensajes. Esto no es una charla, es un monólogo con público.`);
+    else out.push(`Parejito: ${pa}% vs ${100 - pa}%. Acá hay ida y vuelta, nadie le está hablando a la pared.`);
+  }
+  const hours = Array(24).fill(0); A.heat.forEach(r => r.forEach((v, h) => hours[h] += v));
+  const ph = hours.indexOf(Math.max(...hours));
+  out.push(`La hora pico es a las <b>${String(ph).padStart(2, '0')}:00</b>. ${hourComment(ph)}`);
+  const ms = [...A.months.entries()].sort((a, b) => a[0] - b[0]);
+  if (ms.length >= 2) {
+    const peak = ms.reduce((x, y) => y[1] > x[1] ? y : x);
+    if (peak[0] !== ms[0][0] && peak[1] > ms[0][1] * 1.5) out.push(`El chat pasó de ${nf(ms[0][1])} mensajes en ${monthName(ms[0][0])} a <b>${nf(peak[1])}</b> en ${monthName(peak[0])}. Eso no es casualidad, es una escalada.`);
+    else out.push(`El mes más picante fue ${monthName(peak[0])}, con <b>${nf(peak[1])}</b> mensajes.`);
+  }
+  if (A.streak.len >= 3) out.push(`Estuvieron <b>${A.streak.len} días seguidos</b> hablando (desde el ${fmtD(new Date(A.streak.from))}). Ni Netflix logra esa constancia.`);
+  if (A.silence.at !== null) out.push(`El silencio más largo duró <b>${fmtDur(A.silence.gap)}</b> (desde el ${fmtD(A.silence.from)}). Después volvieron, obvio. Siempre vuelven.`);
+  const night = people.reduce((s, p) => s + A.P[p].night, 0);
+  if (night) out.push(`El <b>${pct(night, tot)}%</b> de los mensajes se mandaron entre las 0 y las 6 de la mañana. Sin más comentarios, su señoría.`);
+  const work = people.reduce((s, p) => s + A.P[p].work, 0);
+  if (work) out.push(`<b>${nf(work)}</b> mensajes (${pct(work, tot)}%) cayeron en horario laboral, de lunes a viernes de 9 a 18. Los jefes, bien gracias.`);
+  const del = people.reduce((s, p) => s + A.P[p].deleted, 0);
+  if (del) out.push(`Hay <b>${del}</b> mensajes eliminados. La evidencia a veces se borra sola… pero el "Se eliminó este mensaje" queda.`);
+  out.push(`Promedio: <b>${nf(tot / Math.max(1, A.dayKeys.length))}</b> mensajes por día activo, en ${nf(A.dayKeys.length)} días. Eso no es chatear, es un trabajo de medio tiempo.`);
+  return out;
+}
+
+function awards(A) {
+  const ps = people.filter(p => A.P[p].n);
+  if (!ps.length) return [];
+  const top = (f, min = 1) => { const r = ps.map(p => [p, f(A.P[p])]).filter(x => isFinite(x[1]) && x[1] >= min).sort((a, b) => b[1] - a[1]); return r[0] || null; };
+  const low = f => { const r = ps.map(p => [p, f(A.P[p])]).filter(x => isFinite(x[1])).sort((a, b) => a[1] - b[1]); return r[0] || null; };
+  const list = [];
+  const add = (ico, t, w, c) => w && list.push({ico, t, who: w[0], c: c(w[1], A.P[w[0]])});
+  add('📢', 'Intensidad nivel Dios', top(s => s.n), v => `Mandó ${nf(v)} mensajes. Tranqui, que nadie se va a ningún lado.`);
+  const fastW = low(s => median(s.resp)), slowW = top(s => median(s.resp), 0);
+  add('⚡', 'Speedrunner del "escribiendo…"', fastW, v => `Contesta en ${fmtDur(v)} de mediana. ¿Tenés el celu pegado a la mano o qué?`);
+  if (ps.length > 1 && slowW && fastW && slowW[0] !== fastW[0]) add('🐢', 'Maestría en el visto', slowW, v => `Tarda ${fmtDur(v)} de mediana en contestar. Se hace desear, el/la profesional.`);
+  add('🦉', 'Insomne oficial', top(s => s.night), v => `${nf(v)} mensajes entre las 0 y las 6. A esa hora solo se toman malas decisiones.`);
+  add('💼', 'Empleado/a del mes (de WhatsApp)', top(s => s.work), v => `${nf(v)} mensajes en horario laboral. Si te pagan por hora, devolvé la plata.`);
+  add('🎙️', 'Locutor/a de Radio Pasillo', top(s => s.media.audio), v => `${nf(v)} audios. Escribir, ni en pedo.`);
+  add('🧹', 'Borrador/a profesional', top(s => s.deleted), v => `Borró ${v} mensaje${v > 1 ? 's' : ''}. Algo había que no podía quedar, ¿no?`);
+  add('🚀', 'El/la que arranca', top(s => s.starts), (v, s) => `Arrancó ${pct(v, A.sessions.length)}% de las charlas (${nf(v)}). Ganas, había.`);
+  add('🔫', 'Ametralladora', top(s => s.maxRun, 3), v => `Mandó ${v} mensajes seguidos sin respuesta. Un solo mensaje largo, nunca.`);
+  add('🙋', 'Insistidor/a serial', top(s => s.insist), v => `${nf(v)} veces volvió a escribir después de 20+ minutos de silencio. El "¿?" es un estilo de vida.`);
+  add('📜', 'Escribe la Biblia', top(s => s.textN ? s.chars / s.textN : NaN, 0), v => `Promedio de ${Math.round(v)} caracteres por mensaje. Te pedimos un "ok", no una tesis.`);
+  add('😂', 'Hincha del jaja', top(s => s.risa), v => `${nf(v)} mensajes con risas. O es muy gracioso/a lo otro, o es puro compromiso.`);
+  add('🍯', 'Meloso/a del año', top(s => s.amor + s.apodo + s.corazon), v => `${nf(v)} mensajes con "te quiero", apodos o corazones. Empalagoso nivel dulce de leche.`);
+  add('🥺', 'Te extraño Productions', top(s => s.extra), v => `Dijo que extrañaba ${nf(v)} veces. Extrañar tanto debería tener obra social.`);
+  add('🙏', 'Rey/Reina del perdón', top(s => s.perdon), v => `${nf(v)} perdones o disculpas. Algo habrá hecho.`);
+  add('❓', 'Interrogador/a', top(s => s.q), v => `${nf(v)} mensajes con preguntas. Esto es un chat o una indagatoria.`);
+  add('✏️', 'Corrector/a compulsivo/a', top(s => s.edited), v => `Editó ${nf(v)} mensajes. Pensá antes de mandar, maestro/a.`);
+  add('🖼️', 'Fotógrafo/a oficial', top(s => s.media.foto + s.media.video), v => `${nf(v)} fotos y videos. National Geographic te espera.`);
+  add('🃏', 'Stickerman/woman', top(s => s.media.sticker + s.media.gif), v => `${nf(v)} stickers y GIFs. Comunicación nivel jeroglífico.`);
+  return list;
+}
+
+/* ---------- Render ---------- */
+let AN = null;
+function renderAnalysis() {
+  const A = AN = analyze(), tot = A.real.length, ps = people.filter(p => A.P[p].n);
+  const dot = p => `<span class="dot" style="background:${colors[p]}"></span>`;
+  const go = (i, label = 'Ver en el chat') => i == null ? '' : `<button class="go" data-go="${i}">${label}</button>`;
+  const span = Math.max(1, Math.round((A.t1 - A.t0) / DAY));
+  const sumP = f => ps.reduce((s, p) => s + f(A.P[p]), 0);
+
+  // Cara a cara
+  const rows = [
+    ['Mensajes', s => s.n, 'max'], ['Palabras', s => s.words, 'max'],
+    ['Caracteres por mensaje', s => s.textN ? Math.round(s.chars / s.textN) : 0, 'max'],
+    ['Respuesta (mediana)', s => median(s.resp), 'min', fmtDur],
+    ['Respuestas en menos de 1 min', s => s.resp.length ? pct(s.fast, s.resp.length) : 0, 'max', v => v + '%'],
+    ['Visto más largo que clavó', s => s.slowest, 'max', fmtDur],
+    ['Charlas que arrancó', s => s.starts, 'max'], ['Insistencias (20+ min sin respuesta)', s => s.insist, 'max'],
+    ['Ráfaga más larga', s => s.maxRun, 'max'], ['Mensajes de madrugada (0–6 h)', s => s.night, 'max'],
+    ['En horario laboral', s => s.work, 'max'], ['Audios', s => s.media.audio, 'max'],
+    ['Fotos y videos', s => s.media.foto + s.media.video, 'max'], ['Stickers y GIFs', s => s.media.sticker + s.media.gif, 'max'],
+    ['Mensajes borrados', s => s.deleted, 'max'], ['Mensajes editados', s => s.edited, 'max'],
+    ['Con risas', s => s.risa, 'max'], ['"Te quiero / te amo"', s => s.amor, 'max'], ['Apodos cariñosos', s => s.apodo, 'max'],
+    ['Corazones y caritas de amor', s => s.corazon, 'max'], ['"Te extraño"', s => s.extra, 'max'], ['Perdones', s => s.perdon, 'max'], ['Preguntas', s => s.q, 'max'],
+  ];
+  const vsHtml = `<table class="vs"><thead><tr><th></th>${ps.map(p => `<th><span class="row" style="justify-content:flex-end">${dot(p)}${esc(p)}</span></th>`).join('')}</tr></thead><tbody>${rows.map(([lab, f, mode, fmt]) => {
+    const vals = ps.map(p => f(A.P[p])), ok = vals.filter(isFinite);
+    const best = ok.length > 1 && new Set(ok).size > 1 ? (mode === 'min' ? Math.min(...ok) : Math.max(...ok)) : null;
+    return `<tr><td>${lab}</td>${vals.map(v => `<td class="${v === best && v ? 'win' : ''}">${fmt ? fmt(v) : nf(v)}</td>`).join('')}</tr>`;
+  }).join('')}</tbody></table>`;
+
+  // Heatmap
+  const maxH = Math.max(1, ...A.heat.flat());
+  const lvl = v => !v ? 'var(--panel-2)' : `var(--h${Math.min(5, 1 + Math.floor(v / maxH * 4.999))})`;
+  const heatHtml = `<div class="heat"><span></span>${Array.from({length: 24}, (_, h) => `<span class="hx">${h}</span>`).join('')}${A.heat.map((r, d) => `<span class="lab">${DOW[d]}</span>${r.map((v, h) => `<i class="c" style="background:${lvl(v)}" data-tip="${DOW[d]} ${String(h).padStart(2, '0')}:00–${String(h).padStart(2, '0')}:59\n${nf(v)} mensajes"></i>`).join('')}`).join('')}</div>`;
+
+  // Semanas
+  const maxW = Math.max(1, ...A.weeks.map(w => w.n));
+  const weeksHtml = `<div class="legend">${ps.map(p => `<span>${dot(p)}${esc(p)}</span>`).join('')}</div><div class="weeks">${A.weeks.map(w => `<div class="w" ${w.first != null ? `data-go="${w.first}"` : ''} data-tip="${esc(`Semana del ${fmtD(w.t)}\n${ps.map(p => `${p}: ${nf(w.by[p])}`).join('\n')}\nTotal: ${nf(w.n)}`)}">${ps.map(p => w.by[p] ? `<i style="height:${w.by[p] / maxW * 100}%;background:${colors[p]}"></i>` : '').join('')}</div>`).join('')}</div><div class="wx"><span>${fmtD(A.weeks[0].t)}</span><span>${fmtD(A.weeks[A.weeks.length - 1].t)}</span></div>`;
+
+  // Momentos
+  const moments = [];
+  const first = A.real[0];
+  if (first) moments.push(['🐣', 'El primer mensaje', `${esc(first.sender)}, ${fmtDay(first.date)} a las ${fmtT(first.date)}. Ahí empezó todo.`, first.i]);
+  A.topDays.forEach((d, k) => moments.push([k ? '📅' : '🏆', k ? `Día top #${k + 1}` : 'El día más intenso', `${fmtDay(d.d)}: ${nf(d.n)} mensajes${k ? '' : '. ¿Qué pasó ese día? Spoiler: algo pasó'}.`, d.i]));
+  const longS = [...A.sessions].sort((a, b) => b.n - a.n).slice(0, 3);
+  longS.forEach((s, k) => moments.push(['🗣️', k ? `Charla maratónica #${k + 1}` : 'La charla más larga', `${nf(s.n)} mensajes en ${fmtDur(s.t1 - s.t0)}, el ${fmtD(s.t0)}. La arrancó ${esc(s.starter)}.`, s.start]));
+  const nightS = A.sessions.filter(s => s.night >= 10).sort((a, b) => b.night - a.night).slice(0, 3);
+  nightS.forEach((s, k) => moments.push(['🌙', k ? `Trasnoche #${k + 1}` : 'La trasnochada más grosa', `${nf(s.night)} mensajes de madrugada el ${fmtD(s.t0)}. Al otro día, cara de nada.`, s.start]));
+  ps.forEach(p => { const s = A.P[p]; if (s.maxRun >= 5) moments.push(['🔫', `La ráfaga de ${esc(p)}`, `${s.maxRun} mensajes seguidos sin que le contesten.`, s.maxRunAt]); });
+  ps.forEach(p => { const s = A.P[p]; if (s.longest && s.longest.len > 200) moments.push(['📜', `El testamento de ${esc(p)}`, `Su mensaje más largo: ${nf(s.longest.len)} caracteres.`, s.longest.i]); });
+  ps.forEach(p => { const s = A.P[p]; if (s.slowestAt != null) moments.push(['🥶', `El visto más largo de ${esc(p)}`, `Tardó ${fmtDur(s.slowest)} en contestar.`, s.slowestAt]); });
+  if (A.silence.at !== null) moments.push(['🔇', 'El gran silencio', `${fmtDur(A.silence.gap)} sin hablarse. Mirá cómo volvieron.`, A.silence.at]);
+
+  const wordsHtml = ps.map(p => `<div><div class="who">${dot(p)}${esc(p)}</div><div class="chips">${[...A.P[p].wordF].sort((a, b) => b[1] - a[1]).slice(0, 18).map(([w, n]) => `<span class="chip">${esc(w)}<small>${nf(n)}</small></span>`).join('') || '<span class="sub">—</span>'}</div></div>`).join('');
+  const emoHtml = ps.map(p => `<div><div class="who">${dot(p)}${esc(p)}</div><div class="chips">${[...A.P[p].emoF].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([w, n]) => `<span class="chip">${w}<small>${nf(n)}</small></span>`).join('') || '<span class="sub">Ni un emoji. Seriedad absoluta.</span>'}</div></div>`).join('');
+
+  $('#analysis').innerHTML = `<div class="an">
+    <section class="card hero">
+      <h1>El informe del chat 🕵️</h1>
+      <p>${ps.map(esc).join(' y ')} · ${fmtD(A.t0)} – ${fmtD(A.t1)} · ${nf(span)} días de historia</p>
+      <div class="tiles">
+        <div class="tile"><b>${nf(tot)}</b><span>mensajes</span></div>
+        <div class="tile"><b>${nf(sumP(s => s.words))}</b><span>palabras</span></div>
+        <div class="tile"><b>${nf(A.dayKeys.length)}</b><span>días hablando (${pct(A.dayKeys.length, span + 1)}% del total)</span></div>
+        <div class="tile"><b>${nf(A.sessions.length)}</b><span>charlas distintas</span></div>
+        <div class="tile"><b>${A.streak.len}</b><span>días seguidos, racha máxima</span></div>
+        <div class="tile"><b>${nf(sumP(s => s.media.audio))}</b><span>audios</span></div>
+        <div class="tile"><b>${nf(sumP(s => s.night))}</b><span>mensajes de madrugada</span></div>
+        <div class="tile"><b>${nf(sumP(s => s.deleted))}</b><span>mensajes borrados</span></div>
+      </div>
+    </section>
+
+    <section class="card verdict">
+      <h2>El veredicto</h2>
+      <p class="sub">Conclusiones sacadas de los números. Los números no mienten; la gente sí.</p>
+      <ul>${verdicts(A).map(v => `<li>${v}</li>`).join('')}</ul>
+    </section>
+
+    <section class="card">
+      <h2>Los premios del chat 🏅</h2>
+      <p class="sub">Se los asigna la página según los datos. No hay jurado al que coimear.</p>
+      <div class="awards">${awards(A).map(a => `<div class="award"><div class="ico">${a.ico}</div><div class="t">${a.t}</div><div class="w">${dot(a.who)}${esc(a.who)}</div><div class="c">${a.c}</div></div>`).join('')}</div>
+    </section>
+
+    <section class="card">
+      <h2>Cara a cara</h2>
+      <p class="sub">La corona 👑 marca quién gana en cada rubro (para bien o para mal).</p>
+      <div style="overflow-x:auto">${vsHtml}</div>
+    </section>
+
+    <section class="card">
+      <h2>La evolución, semana a semana</h2>
+      <p class="sub">Mensajes por semana. Tocá una barra para ir a esa semana en el chat.</p>
+      ${weeksHtml}
+    </section>
+
+    <section class="card">
+      <h2>¿Cuándo hablan?</h2>
+      <p class="sub">Mensajes por día y hora. Más oscuro, más actividad. El horario dice mucho.</p>
+      ${heatHtml}
+    </section>
+
+    <section class="card">
+      <h2>Los mejores momentos 🎬</h2>
+      <p class="sub">Detectados automáticamente. Tocá para ir directo a la escena del crimen.</p>
+      <div class="moments">${moments.map(([ico, t, d, i]) => `<div class="moment"><span class="ico">${ico}</span><div class="body"><b>${t}</b><span>${d}</span></div>${go(i, 'Ver')}</div>`).join('')}</div>
+    </section>
+
+    <section class="two">
+      <div class="card"><h2>Las palabras de cada uno</h2><p class="sub">Las más usadas, sin "que", "de" ni relleno.</p><div style="display:grid;gap:14px">${wordsHtml}</div></div>
+      <div class="card"><h2>Emojis favoritos</h2><p class="sub">Lo que no se animan a escribir.</p><div style="display:grid;gap:14px">${emoHtml}</div></div>
+    </section>
+
+    <section class="card">
+      <h2>Detector de palabras 🔎</h2>
+      <p class="sub">Escribí cualquier palabra o frase y te digo quién la dice más, cuándo arrancó y cuándo la dijo por última vez.</p>
+      <div class="kw"><input class="input" id="kwIn" placeholder="ej: kfc, turno, amor, mañana…" autocomplete="off"></div>
+      <div class="kw-res" id="kwRes"></div>
+    </section>
+  </div>`;
+  $('#kwIn').addEventListener('input', () => { clearTimeout(qTimer); qTimer = setTimeout(keyword, 200); });
+}
+
+function keyword() {
+  const q = norm($('#kwIn').value.trim()), box = $('#kwRes');
+  if (q.length < 2) { box.innerHTML = ''; return; }
+  const ps = people.filter(p => AN.P[p].n), by = Object.fromEntries(ps.map(p => [p, 0]));
+  const hits = [], months = new Map();
+  for (const m of AN.real) {
+    if (!(m.kind === 'text' || m.kind === 'media')) continue;
+    const t = norm(m.text); let k = 0, c = 0;
+    while ((k = t.indexOf(q, k)) > -1) { c++; k += q.length; }
+    if (!c) continue;
+    by[m.sender] += c; hits.push(m);
+    const key = m.date.getFullYear() * 12 + m.date.getMonth(); months.set(key, (months.get(key) || 0) + c);
+  }
+  const total = Object.values(by).reduce((a, b) => a + b, 0);
+  if (!total) { box.innerHTML = '<p class="sub">Nadie la dijo nunca. Limpito el chat en ese tema.</p>'; return; }
+  const mx = Math.max(...Object.values(by));
+  const ms = [...months.entries()].sort((a, b) => a[0] - b[0]), mxm = Math.max(...ms.map(x => x[1]));
+  const first = hits[0], last = hits[hits.length - 1];
+  box.innerHTML = `<p><b>${nf(total)}</b> veces en ${nf(hits.length)} mensajes.</p>
+    ${ps.map(p => `<div class="hbar"><div class="l"><span>${esc(p)}</span><span>${nf(by[p])} (${pct(by[p], total)}%)</span></div><div class="b"><i style="width:${by[p] / mx * 100}%;background:${colors[p]}"></i></div></div>`).join('')}
+    <h3>Por mes</h3>
+    <div class="bars">${ms.map(([k, v]) => `<div style="height:${v / mxm * 100}%" data-tip="${monthName(k)}: ${nf(v)}"></div>`).join('')}</div>
+    <div class="bars-x"><span>${monthName(ms[0][0])}</span><span>${monthName(ms[ms.length - 1][0])}</span></div>
+    <div class="moments" style="margin-top:12px">
+      <div class="moment"><span class="ico">🥇</span><div class="body"><b>La primera vez</b><span>${esc(first.sender)}, ${fmtD(first.date)} ${fmtT(first.date)}</span></div><button class="go" data-go="${first.i}">Ver</button></div>
+      <div class="moment"><span class="ico">🔚</span><div class="body"><b>La última vez</b><span>${esc(last.sender)}, ${fmtD(last.date)} ${fmtT(last.date)}</span></div><button class="go" data-go="${last.i}">Ver</button></div>
+    </div>
+    <button class="btn ghost small" style="margin-top:12px" id="kwSearch">Ver todos en el buscador</button>`;
+  $('#kwSearch').onclick = () => { $('#q').value = $('#kwIn').value; search(); setView('chat'); $$('.tabs button')[0].click(); $('#side').classList.add('open'); };
+}
+
+/* ---------- Vistas y tooltip ---------- */
+function setView(v) {
+  $('#vChat').classList.toggle('on', v === 'chat');
+  $('#vAn').classList.toggle('on', v === 'an');
+  $('#chat').classList.toggle('hidden', v !== 'chat');
+  $('#analysis').classList.toggle('hidden', v !== 'an');
+  $('#tip').classList.add('hidden');
+}
+$('#vChat').onclick = () => setView('chat');
+$('#vAn').onclick = () => { setView('an'); $('#analysis').scrollTop = 0; };
+document.addEventListener('mousemove', e => {
+  const t = e.target.closest && e.target.closest('[data-tip]'), tip = $('#tip');
+  if (!t) { tip.classList.add('hidden'); return; }
+  tip.textContent = t.dataset.tip; tip.classList.remove('hidden');
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+});
 
 /* ================= UI general ================= */
 $$('.tabs button').forEach(b => b.onclick = () => {
