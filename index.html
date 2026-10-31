@@ -457,10 +457,13 @@ function renderStars() {
   const list = [...stars].sort((a, b) => a - b).map(i => msgs[i]).filter(Boolean);
   $('#starList').innerHTML = list.length ? list.map(resHtml).join('') : '<div class="empty">Aún no hay mensajes marcados.</div>';
 }
-$('#exportBtn').onclick = () => {
+let dl = null;
+if (window.claude && window.claude.use) window.claude.use('downloads').then(d => { dl = d; }).catch(() => {});
+$('#exportBtn').onclick = async () => {
   const list = [...stars].sort((a, b) => a - b).map(i => msgs[i]);
   if (!list.length) return;
   const txt = list.map(m => `[${fmtD(m.date)} ${fmtT(m.date)}] ${m.sender}: ${m.media ? '<' + m.media + '> ' : ''}${m.text}`).join('\n');
+  if (dl) { try { await dl.save({filename: 'mensajes-marcados.txt', data: txt}); } catch (e) {} return; }
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([txt], {type: 'text/plain;charset=utf-8'}));
   a.download = 'mensajes-marcados.txt'; a.click();
