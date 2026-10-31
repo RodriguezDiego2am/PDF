@@ -644,10 +644,24 @@ function goTo(i) {
   const el = elById.get(i); if (!el) return;
   setView('chat');
   if (el.classList.contains('hidden')) { resetFilters(); }
-  el.scrollIntoView({block: 'center', behavior: 'smooth'});
-  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
   $('#side').classList.remove('open');
+  // Los días fuera de pantalla tienen un alto estimado (content-visibility), así que
+  // la posición cambia a medida que se dibujan. Se corrige el scroll hasta que el
+  // mensaje queda quieto en el centro.
+  const chat = $('#chat'), token = ++goToken;
+  let tries = 0, stable = 0;
+  const step = () => {
+    if (token !== goToken) return;
+    const c = chat.getBoundingClientRect(), r = el.getBoundingClientRect();
+    const delta = (r.top + r.height / 2) - (c.top + c.height / 2);
+    const atEdge = (delta < 0 && chat.scrollTop <= 0) || (delta > 0 && chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 1);
+    if (Math.abs(delta) < 4 || atEdge) stable++; else { stable = 0; chat.scrollTop += delta; }
+    if (stable < 3 && ++tries < 40) requestAnimationFrame(step);
+    else { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+  };
+  step();
 }
+let goToken = 0;
 
 /* ================= Filtros ================= */
 $('#me').onchange = e => { me = e.target.value; try { localStorage.setItem(chatKey + '-meIdx', people.indexOf(me)); } catch {} const s = $('#chat').scrollTop; render(); applyFilters(); search(); $('#chat').scrollTop = s; };
